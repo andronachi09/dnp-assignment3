@@ -1,0 +1,51 @@
+﻿@page "/Edit/{Id:int}"
+@using Client.Data
+@using Client.Models
+
+@inject IAdultData AdultData
+@inject NavigationManager NavigationManager
+
+<h3>Edit Adult with ID: @Id</h3>
+
+@if (adultEdit == null)
+{
+    <em>Adult not found!</em>
+}
+else
+{
+    <EditForm Model="@adultEdit" OnValidSubmit="@Save">
+        <DataAnnotationsValidator/> <ValidationSummary/>
+        <div class="form-group"> ID:<br/> <InputNumber @bind-Value="adultEdit.Id"/> </div>
+        <div class="form-group"> First name:<br/> <InputTextArea @bind-Value="adultEdit.FirstName"/> </div>
+        <div class="form-group"> Last name:<br/> <InputTextArea @bind-Value="adultEdit.LastName"/> </div>
+        <div class="form-group"> Job:<br/> <InputTextArea @bind-Value="job.JobTitle"/> </div>
+        <div class="form-group"> Hair color:<br/> <InputTextArea @bind-Value="adultEdit.HairColor"/> </div>
+        <div class="form-group"> Eye color:<br/> <InputTextArea @bind-Value="adultEdit.EyeColor"/> </div>
+        <div class="form-group"> Age:<br/> <InputNumber @bind-Value="adultEdit.Age"/> </div>
+        <p class="actions">
+            <button class="btn btn-outline-dark" type="submit">Save</button>
+        </p>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private Adult adultEdit;
+    private Job job;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Run(() =>
+        {
+            adultEdit = AdultData.GetId(Id);
+            job = adultEdit.JobTitle != null ? job = adultEdit.JobTitle : job = new Job();
+        });
+    }
+
+    private void Save()
+    {
+        AdultData.UpdateAdultAsync(adultEdit);
+        NavigationManager.NavigateTo("/Adults");
+    }
+}

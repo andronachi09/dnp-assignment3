@@ -1,0 +1,115 @@
+﻿@page "/Adults"
+@using Client.Data
+@using Client.Models
+
+@inject IAdultData AdultData
+@inject NavigationManager NavigationManager
+
+<h3>Adults</h3>
+
+<p>
+    Filter by user ID: <input type="number" @oninput="@((arg) => Filter(arg))">
+</p>
+
+@if (adultsToShow == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else if (!adultsToShow.Any())
+{
+    <p>
+        <em>Please add adults.</em>
+    </p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Job</th>
+            <th>Hair Color</th>
+            <th>Eye Color</th>
+            <th>Age</th>
+            <AuthorizeView>
+                <th>Remove</th>
+                <th>Edit</th>
+            </AuthorizeView>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in adultsToShow)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.FirstName</td>
+                <td>@item.LastName</td>
+                <td>@item.JobTitle.JobTitle</td>
+                <td>@item.HairColor</td>
+                <td>@item.EyeColor</td>
+                <td>@item.Age</td>
+                <AuthorizeView>
+                    <td>
+                        <button @onclick="@(() => RemoveAdult(item.Id))">
+                            <i class="oi oi-trash" style="color:red"/>
+                        </button>
+                    </td>
+                    <td>
+                        <button @onclick="@(() => Edit(item.Id))">
+                            <i class="oi oi-pencil" style="color: black"/>
+                        </button>
+                    </td>
+                </AuthorizeView>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IList<Adult> adults;
+    private IList<Adult> adultsToShow;
+
+    protected override async Task OnInitializedAsync()
+    {
+        adults = await AdultData.GetAdultsAsync();
+        adultsToShow = adults;
+    }
+
+    private void RemoveAdult(int id)
+    {
+        Adult toRemove = adults.First(a => a.Id == id);
+        adults.Remove(toRemove);
+        adultsToShow.Remove(toRemove);
+        AdultData.DeleteAdultsAsync(toRemove);
+    }
+
+    private void Filter(ChangeEventArgs changeEventArgs)
+    {
+        int? filterById = null;
+        try
+        {
+            filterById = int.Parse(changeEventArgs.Value.ToString());
+        }
+        catch (Exception e)
+        {
+        }
+        if (filterById != null)
+        {
+            adultsToShow = adults.Where(t => t.Id == filterById).ToList();
+        }
+        else
+        {
+            adultsToShow = adults;
+        }
+    }
+
+    private void Edit(int id)
+    {
+        NavigationManager.NavigateTo($"edit/{id}");
+    }
+}
